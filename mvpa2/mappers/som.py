@@ -137,7 +137,7 @@ class SimpleSOMMapper(Mapper):
         It is assumed that prior to calling this method the _pretrain method
         was called with the same argument.
         """
-
+        print "test"
         # ensure that dqd was set properly
         dqd = self._dqd
         if dqd is None:
