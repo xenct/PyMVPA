@@ -137,7 +137,9 @@ class SimpleSOMMapper(Mapper):
         It is assumed that prior to calling this method the _pretrain method
         was called with the same argument.
         """
+        
         print "test"
+        
         # ensure that dqd was set properly
         dqd = self._dqd
         if dqd is None:
@@ -218,7 +220,20 @@ class SimpleSOMMapper(Mapper):
 
         return infl
 
+    def _mean_error(data, som):
+        # protype nodes
+        som.K
+        # which node best matches the input?
+        bmu = som.forward(data)
+        # for each data day, what is the mean error from the bmu
+        error = np.zeros(len(data))
+        for i in range(len(data)):
+            error[i] = np.mean(np.abs(som.K[bmu[i][0], bmu[i][1]] - data[i]))
+        return np.mean(error)
 
+    
+    
+    
     ##REF: Name was automagically refactored
     def _get_bmu(self, sample):
         """Returns the ID of the best matching unit.
