@@ -148,7 +148,7 @@ class SimpleSOMMapper(Mapper):
         unit_deltas = np.zeros(self._K.shape, dtype='float')
         
         # create empty vector for storing error stats
-        self.mean_error = []
+        self.mean_error = np.zeros((self.niter))
 
         # for all iterations
         for it in xrange(1, self.niter + 1):
@@ -186,15 +186,15 @@ class SimpleSOMMapper(Mapper):
 
                 # apply sample unit delta
                 self._K += unit_deltas
+            
+            # Calculate the mean absolute error for this iteration
+            self.mean_error[it-1] = self._sample_error(samples)
+            print self.mean_error
 
             if __debug__:
                 debug("SOM", "Iteration %d/%d done: ||unit_deltas||=%g" %
                       (it, self.niter, np.sqrt(np.sum(unit_deltas ** 2))))
-            
-            # Calculate the mean error of the sample
-            sample_error = self._sample_error(samples)
-            # mean absolute error for this iteration
-            self.mean_error.append(np.mean(sample_error))
+
 
 
     ##REF: Name was automagically refactored
@@ -268,17 +268,14 @@ class SimpleSOMMapper(Mapper):
 
     def _sample_error(self, data):
         """Calculate the mean of the absolute difference from the 
-        best matched unit to each sample.
-        This function returns the mean for the whole single iteration 
+        best matched unit to each sample
         """
         # get the best matching unit address for each sample
         bmu = self._forward_data(data)
-        # initialise an empty array for errors for each sample
-        sample_error = np.zeros(len(data))
-        # for each sample, find the mean absolute difference fromthe sample to the best matching unit
+        samp_error = np.zeros(len(data))
         for i in range(len(data)):
-            sample_error[i] = np.mean(np.abs(self._K[(bmu[i][0], bmu[i][1])] - data[i]))
-        return sample_error
+            samp_error[i] = np.mean(np.abs(self.K[(bmu[i][0], bmu[i][1])] - data[i]))
+        return np.mean(samp_error)
 
 
     def __repr__(self):
