@@ -138,8 +138,6 @@ class SimpleSOMMapper(Mapper):
         was called with the same argument.
         """
         
-        print "test"
-        
         # ensure that dqd was set properly
         dqd = self._dqd
         if dqd is None:
@@ -148,6 +146,9 @@ class SimpleSOMMapper(Mapper):
         # units weight vector deltas for batch training
         # (height x width x #features)
         unit_deltas = np.zeros(self._K.shape, dtype='float')
+        
+        # create empty vector for storing error stats
+        self.mean_error = []
 
         # for all iterations
         for it in xrange(1, self.niter + 1):
@@ -189,7 +190,11 @@ class SimpleSOMMapper(Mapper):
             if __debug__:
                 debug("SOM", "Iteration %d/%d done: ||unit_deltas||=%g" %
                       (it, self.niter, np.sqrt(np.sum(unit_deltas ** 2))))
-
+            
+            # Calculate the mean error of the sample
+            sample_error = self._sample_error(samples)
+            # mean absolute error for this iteration
+            self.mean_error.append(np.mean(sample_error))
 
 
     ##REF: Name was automagically refactored
@@ -220,18 +225,6 @@ class SimpleSOMMapper(Mapper):
 
         return infl
 
-    def _mean_error(data, som):
-        # protype nodes
-        som.K
-        # which node best matches the input?
-        bmu = som.forward(data)
-        # for each data day, what is the mean error from the bmu
-        error = np.zeros(len(data))
-        for i in range(len(data)):
-            error[i] = np.mean(np.abs(som.K[bmu[i][0], bmu[i][1]] - data[i]))
-        return np.mean(error)
-
-    
     
     
     ##REF: Name was automagically refactored
@@ -271,6 +264,21 @@ class SimpleSOMMapper(Mapper):
         # simple transform into appropriate array slicing and
         # return the associated Kohonen unit weights
         return self.K[tuple(np.transpose(data))]
+
+
+    def _sample_error(self, data):
+        """Calculate the mean of the absolute difference from the 
+        best matched unit to each sample.
+        This function returns the mean for the whole single iteration 
+        """
+        # get the best matching unit address for each sample
+        bmu = self._forward_data(data)
+        # initialise an empty array for errors for each sample
+        sample_error = np.zeros(len(data))
+        # for each sample, find the mean absolute difference fromthe sample to the best matching unit
+        for i in range(len(data)):
+            sample_error[i] = np.mean(np.abs(self._K[(bmu[i][0], bmu[i][1])] - data[i]))
+        return sample_error
 
 
     def __repr__(self):
